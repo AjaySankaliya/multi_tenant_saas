@@ -74,7 +74,7 @@ export const registerCompanyController = async (
 };
 
 //admin login
-export const loginController = async (req: Request, res: Response) => {
+export const adminLoginController = async (req: Request, res: Response) => {
   const { adminEmail, adminPassword } = req.body;
 
   if (!adminEmail || !adminPassword) {
@@ -121,6 +121,7 @@ export const loginController = async (req: Request, res: Response) => {
     success: true,
     token,
     user:{
+      userId:user.id,
       role:user.role,
       tenantId:user.tenant_id
     }
@@ -136,14 +137,6 @@ export const registerController = async (req: AuthRequest, res: Response) => {
         success: false,
         message: "All fields are required",
       });
-    }
-
-    if(req.user?.role !== "ADMIN")
-    {
-      return res.status(403).json({
-        success:false,
-        message: "Only admin can create users",
-      })
     }
 
     const [existUser]: any = await db.query(
@@ -183,4 +176,58 @@ export const registerController = async (req: AuthRequest, res: Response) => {
       .status(500)
       .json({ success: false, message: "Internal server error" });
   }
+};
+
+export const loginController = async (req: AuthRequest, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required" });
+  }
+
+  const [users]: any = await db.query(
+    "select id,password,role,tenant_id from users where email=?",
+    [email],
+  );
+
+  if (users.length == 0) {
+    return res
+      .status(404)
+      .json({ success: false, message: "user have not register" });
+  }
+
+  const user = users[0];
+
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordMatch) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
+
+  const token = await jwt.sign(
+    {
+      userId: user.id,
+      tenantId: user.tenant_id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET as string,
+    {
+      expiresIn: "1h",  
+    },
+  );
+
+  return res.status(200).json({
+    success: true,
+    token,
+    user:{
+      userId:user.id,
+      role:user.role,
+      tenantId:user.tenant_id
+    }
+  });
 };

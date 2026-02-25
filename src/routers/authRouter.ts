@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { loginController, registerCompanyController, registerController } from "../controllers/authController";
+import { adminLoginController, loginController, registerCompanyController, registerController } from "../controllers/authController";
 import { authenticate } from "../middlewares/authMiddleware";
+import { adminOnly } from "../middlewares/checkRole";
 
 const router=Router();
 
 router.post('/register-company',registerCompanyController)
-router.post('/adminLogin',loginController)
-router.post('/register',authenticate,registerController)
+router.post('/adminLogin',adminLoginController)
+router.post('/register',authenticate,adminOnly,registerController)
+router.post('/login',loginController)
 
 export default router;
