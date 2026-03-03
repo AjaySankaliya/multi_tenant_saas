@@ -1,7 +1,7 @@
 import { Request } from "express";
 
 export interface AuthRequest extends Request{
-    user?:{
+     user?:{
         userId:number,
         tenantId:number,
         role:String

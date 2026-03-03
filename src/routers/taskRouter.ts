@@ -1,16 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../middlewares/authMiddleware";
 import { adminOnly } from "../middlewares/checkRole";
-import { addTask } from "../controllers/taskController";
+import { addTask, assignTask, getTasks } from "../controllers/taskController";
 const router=Router();
 
 
 router.post('/',authenticate,adminOnly,addTask)
-
-
+router.put('/:taskId/assign',authenticate,adminOnly,assignTask)
+router.get('/',authenticate,getTasks)
 export default router;
-
-
-// POST /api/tasks      (ADMIN)
-// GET  /api/tasks      (USER)
-// PUT  /api/tasks/:id  (USER → status update)

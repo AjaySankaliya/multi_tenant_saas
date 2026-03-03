@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import express, { Request, Response } from "express";
+import express from "express";
 import {connectDB} from "./config/dbConnection";
 import authRouter from "./routers/authRouter"
 import projectRouter from "./routers/projectRouter"
