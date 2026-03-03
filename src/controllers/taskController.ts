@@ -105,6 +105,8 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.userId;
     const role = req.user?.role;
 
+    const { status,  priority }=req.query
+
     let sql = "";
     let values: any[] = [];
 
@@ -117,7 +119,6 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
         LEFT JOIN users u ON t.assigned_to = u.id
         LEFT JOIN projects p ON t.project_id = p.id
         WHERE t.tenant_id = ?
-        ORDER BY t.created_at DESC
       `;
       values = [tenantId];
     } else {
@@ -128,10 +129,21 @@ export const getTasks = async (req: AuthRequest, res: Response) => {
         LEFT JOIN projects p ON t.project_id = p.id
         WHERE t.tenant_id = ?
         AND t.assigned_to = ?
-        ORDER BY t.created_at DESC
       `;
       values = [tenantId, userId];
     }
+
+    const filterAllowed=["status","priority"];
+
+    filterAllowed.forEach((field)=>{
+      if(req.query[field])
+      {
+        sql+= `  and t.${field}= ?`;
+        values.push(req.query[field])
+      }
+    });
+
+    sql+= ` ORDER BY t.created_at DESC`;
 
     const [tasks]: any = await db.query(sql, values);
 
